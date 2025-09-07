@@ -2,10 +2,10 @@
   "id": "api-designer",
   "name": "API Designer",
   "version": "1.0.0",
-  "minAppVersion": "0.15.0",
-  "description": "A plugin for Obsidian that lets you design and document API endpoints visually without leaving your notes.",
+  "minAppVersion": "1.7.2",
+  "description": "Design and document API endpoints visually without leaving your notes.",
   "isDesktopOnly": false,
   "author": "Ruveyda Yilmaz",
   "authorUrl": "https://github.com/ruveydayilmaz",
-  "fundingUrl": "https://ko-fi.com/ruveyda"
+  "fundingUrl": "https://ko-fi.com/H2H5IVCDC"
 }
