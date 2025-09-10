@@ -56,7 +56,7 @@ class APIDesignerSettingTab extends PluginSettingTab {
           });
         })
       )
-      .addTextArea(text =>
+      .addTextArea(text => {
         text
           .setPlaceholder("{ \"blue\": \"#4dabf7\" }")
           .setValue(this.plugin.settings.customThemeJson || "")
@@ -88,15 +88,10 @@ class APIDesignerSettingTab extends PluginSettingTab {
             }
             await this.plugin.saveSettings();
             this.plugin.applyCustomTheme();
-          })
-      );
+          });
 
-    const textarea = containerEl.querySelector("textarea");
-    if (textarea) {
-      textarea.style.width = "100%";
-      textarea.style.minHeight = "250px";
-      textarea.style.fontFamily = "monospace";
-    }
+        text.inputEl.addClass("api-theme-json-input")
+      })
   }
 }
 
@@ -115,7 +110,7 @@ interface APIEndpoint {
 
 export default class APIDesignerPlugin extends Plugin {
   settings: APIDesignerSettings;
-  private appliedVarKeys: string[] = [];
+  private CUSTOM_STYLE_ID = "api-designer-custom-style";
 
   async onload() {
     await this.loadSettings();
@@ -147,14 +142,13 @@ export default class APIDesignerPlugin extends Plugin {
       (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
         let endpoints: APIEndpoint[];
         try {
-          endpoints = JSON.parse(source);
+          endpoints = deepClone(JSON.parse(source));
         } catch {
           el.createEl("div", { text: "Invalid JSON" });
           return;
         }
 
-        let originalBlock = "```api-endpoints\n" + source + "\n```";
-        let lastSearchIndex = 0;
+        const originalBlock = "```api-endpoints\n" + source + "\n```";
 
         const info = ctx.getSectionInfo(el);
         if (!info) return;
@@ -167,29 +161,21 @@ export default class APIDesignerPlugin extends Plugin {
           setTimeout(() => {
             const doc = editor.getValue();
 
-            let startOffset = doc.indexOf(originalBlock, lastSearchIndex);
+            const startOffset = info?.lineStart ? editor.posToOffset({ line: info.lineStart, ch: 0 }) : -1;
+            const endOffset = info?.lineEnd ? editor.posToOffset({ line: info.lineEnd, ch: 0 }) : -1;
+            if (startOffset === -1 || endOffset === -1) return;
 
-            if (startOffset === -1) {
-              startOffset = doc.indexOf("```api-endpoints");
-              if (startOffset === -1) {
-                return;
-              }
-            }
+            const sectionText = doc.slice(startOffset, endOffset);
+            const blockIndex = sectionText.indexOf(originalBlock);
 
-            const closingIndex = doc.indexOf("```", startOffset + 3);
-            if (closingIndex === -1) {
-              return;
-            }
-            const endOffset = closingIndex + 3;
+            if (blockIndex === -1) return;
+
+            const absoluteStart = startOffset + blockIndex;
+            const absoluteEnd = absoluteStart + originalBlock.length;
 
             const newBlock = "```api-endpoints\n" + JSON.stringify(endpoints, null, 2) + "\n```";
 
-            const from = offsetToPos(editor, startOffset);
-            const to = offsetToPos(editor, endOffset);
-            editor.replaceRange(newBlock, from, to);
-
-            originalBlock = newBlock;
-            lastSearchIndex = startOffset;
+            editor.replaceRange(newBlock, editor.offsetToPos(absoluteStart), editor.offsetToPos(absoluteEnd));
           }, 0);
         };
 
@@ -235,7 +221,8 @@ export default class APIDesignerPlugin extends Plugin {
           };
 
           const sendBtn = header.createEl("button", { cls: "send-btn" });
-          sendBtn.ariaLabel = "WIP"
+          sendBtn.ariaLabel = "WIP";
+          sendBtn.disabled = true;
 
           const img = sendBtn.createEl("img", { cls: "send-icon" });
           img.src = "data:image/svg+xml;base64,PHN2ZwogICAgICAgICAgICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgICAgICAgIHdpZHRoPSIxNiIKICAgICAgICAgICAgaGVpZ2h0PSIxNiIKICAgICAgICAgICAgdmlld0JveD0iMCAwIDI0IDI0IgogICAgICAgICAgICBmaWxsPSJub25lIgogICAgICAgICAgICBzdHJva2U9ImN1cnJlbnRDb2xvciIKICAgICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyIgogICAgICAgICAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiCiAgICAgICAgICAgIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNlbmQtaG9yaXpvbnRhbC1pY29uIGx1Y2lkZS1zZW5kLWhvcml6b250YWwiCiAgICAgICAgICAgID4KICAgICAgICAgICAgPHBhdGggZD0iTTMuNzE0IDMuMDQ4YS40OTguNDk4IDAgMCAwLS42ODMuNjI3bDIuODQzIDcuNjI3YTIgMiAwIDAgMSAwIDEuMzk2bC0yLjg0MiA3LjYyN2EuNDk4LjQ5OCAwIDAgMCAuNjgyLjYyN2wxOC04LjVhLjUuNSAwIDAgMCAwLS45MDR6Ii8+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik02IDEyaDE2Ii8+CiAgICAgICAgICA8L3N2Zz4=";
@@ -243,7 +230,6 @@ export default class APIDesignerPlugin extends Plugin {
 
           // TODO:
           sendBtn.onclick = async () => {
-            console.log('clicked');
             // const url = endpointInput.value;
             // const method = methodSelect.value;
             // let body: any = null;
@@ -279,18 +265,17 @@ export default class APIDesignerPlugin extends Plugin {
           const body = card.createDiv({ cls: "body" });
 
           const wrapperLeft = body.createDiv({ cls: "title-wrapper" });
-          wrapperLeft.createEl("h5", { text: "Request Body" });
+          wrapperLeft.createEl("h5", { text: "Request" });
           const reqList = wrapperLeft.createDiv({ cls: "inner-body" });
           renderPropList(reqList, ep.requestBody, () => updateNote());
 
           const wrapperRight = body.createDiv({ cls: "title-wrapper" });
-          wrapperRight.createEl("h5", { text: "Response Body" });
+          wrapperRight.createEl("h5", { text: "Response" });
           const resList = wrapperRight.createDiv({ cls: "inner-body" });
           renderPropList(resList, ep.responseBody, () => updateNote());
 
-          const responseBox = card.createEl("pre", { cls: "api-response" });
+          const responseBox = card.createEl("pre", { cls: "api-response hidden" });
           responseBox.createEl("code");
-          responseBox.style.display = "none";
         });
       }
     );
@@ -306,21 +291,42 @@ export default class APIDesignerPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  applyCustomTheme() {
-    const root = document.body;
+  private buildCustomThemeCss(themeObj: Record<string, string>) {
+    const lines: string[] = [];
+    for (const [rawKey, value] of Object.entries(themeObj)) {
+      const key = rawKey.startsWith("api-") ? rawKey : `api-${rawKey}`;
+      lines.push(`  --${key}: ${value};`);
+    }
+    return `.api-card {\n${lines.join("\n")}\n}\n`;
+  }
 
-    this.appliedVarKeys.forEach((cssName) => {
-      root.style.removeProperty(`--${cssName}`);
-    });
-    this.appliedVarKeys = [];
+  private ensureCustomStyleElement(): HTMLStyleElement {
+    let el = document.getElementById(this.CUSTOM_STYLE_ID) as HTMLStyleElement | null;
+    if (!el) {
+      el = document.createElement("style");
+      el.id = this.CUSTOM_STYLE_ID;
+      document.head.appendChild(el);
+    }
+    return el;
+  }
+
+  applyCustomTheme() {
+    this.removeCustomThemeStyle();
 
     const theme = this.settings.customTheme;
-    if (!theme || typeof theme !== "object") return;
+    if (!theme || typeof theme !== "object") {
+      return;
+    }
 
-    for (const [key, value] of Object.entries(theme)) {
-      const cssName = key.startsWith("api-") ? key : `api-${key}`;
-      root.style.setProperty(`--${cssName}`, value);
-      this.appliedVarKeys.push(cssName);
+    const css = this.buildCustomThemeCss(theme);
+    const styleEl = this.ensureCustomStyleElement();
+    styleEl.textContent = css;
+  }
+
+  removeCustomThemeStyle() {
+    const existing = document.getElementById(this.CUSTOM_STYLE_ID);
+    if (existing) {
+      existing.remove();
     }
   }
 
@@ -382,12 +388,14 @@ function renderPropRow(
 
   typeSelect.onchange = () => {
     prop.type = typeSelect.value as APIProp["type"];
-    if (prop.type === "object" && !Array.isArray(prop.items)) prop.items = [];
-    if (
-      prop.type === "array" &&
-      (prop.items == null || Array.isArray(prop.items))
-    ) {
-      prop.items = { name: "item", type: "string" };
+
+    if (prop.type === "object") {
+      if (!Array.isArray(prop.items)) prop.items = [];
+    }
+    if (prop.type === "array") {
+      if (!prop.items || Array.isArray(prop.items)) {
+        prop.items = { name: "item", type: "string" };
+      }
     }
     renderSub();
     onUpdate();
@@ -470,15 +478,6 @@ function debounce<T extends (...a: any[]) => void>(fn: T, wait = 200) {
   };
 }
 
-function offsetToPos(editor: any, offset: number) {
-  const lastLine = editor.lastLine();
-  let cur = 0;
-  for (let i = 0; i <= lastLine; i++) {
-    const lineLen = editor.getLine(i).length + 1;
-    if (cur + lineLen > offset) {
-      return { line: i, ch: Math.max(0, offset - cur) };
-    }
-    cur += lineLen;
-  }
-  return { line: lastLine, ch: editor.getLine(lastLine).length };
+function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
 }

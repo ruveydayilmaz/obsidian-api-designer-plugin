@@ -19,6 +19,12 @@
   height: 100%;
 }
 
+.api-theme-json-input {
+  width: 100%;
+  min-height: 250px;
+  font-family: var(--font-monospace);
+}
+
 .api-card {
   border: 1px solid var(--background-modifier-border);
   background-color: var(--background-secondary);
@@ -247,6 +253,10 @@ button {
   font-family: var(--font-monospace);
   font-size: 0.9em;
   white-space: pre;
+}
+
+.api-response.hidden {
+  display: none;
 }
 
 @media (min-width: 600px) {
