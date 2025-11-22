@@ -1,0 +1,67 @@
+1- declare global {
+  interface Window {
+    Prism: any;
+  }
+}
+
+function formatAndHighlight(body: string, contentType: string): { lang: string; html: string } {
+  const Prism = window.Prism;
+  let lang = "plaintext";
+  let formatted = body;
+
+  try {
+    if (contentType.includes("application/json")) {
+      lang = "json";
+      formatted = JSON.stringify(JSON.parse(body), null, 2);
+    } else if (contentType.includes("xml")) {
+      lang = "xml";
+      formatted = body.replace(/></g, ">\n<");
+    }
+  } catch {
+    lang = "plaintext";
+    formatted = body;
+  }
+
+  if (Prism && Prism.languages[lang]) {
+    return { lang, html: Prism.highlight(formatted, Prism.languages[lang], lang) };
+  }
+
+  return { lang, html: formatted };
+}
+
+
+
+
+           2- (inside endoint foreach):
+          sendBtn.onclick = async () => {
+             const url = endpointInput.value;
+             const method = methodSelect.value;
+             let body: any = null;
+
+             if (["POST", "PUT"].includes(method)) {
+               body = {};
+               ep.requestBody.forEach((p) => {
+                 body[p.name] = `example-${p.type}`;
+               });
+             }
+
+             try {
+               const res = await requestUrl({
+                 url,
+                 method,
+                 headers: { "Content-Type": "application/json" },
+                 body: body ? JSON.stringify(body) : undefined,
+               });
+               const contentType = res.headers["content-type"] || "text/plain";
+               const { lang, html } = formatAndHighlight(res.text, contentType);
+
+               responseBox.empty();
+               const pre = responseBox.createEl("pre", { cls: "api-response" });
+               const code = pre.createEl("code", { cls: `language-${lang}` });
+               code.innerHTML = html;
+             } catch (err) {
+               responseBox.style.display = "block";
+               responseBox.textContent = `Error: ${err.message}`;
+               console.log(err);
+             }
+          };

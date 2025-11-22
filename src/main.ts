@@ -5,15 +5,8 @@ import {
   MarkdownPostProcessorContext,
   PluginSettingTab,
   Setting,
-  // requestUrl,
+  Editor,
 } from "obsidian";
-
-declare global {
-  interface Window {
-    Prism: any;
-  }
-}
-
 interface APIDesignerSettings {
   customThemeJson: string;
   customTheme?: Record<string, string> | null;
@@ -38,7 +31,7 @@ class APIDesignerSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     const header = containerEl.createDiv("api-designer-settings-header");
-    header.createEl("h2", { text: "API Designer Settings" });
+    new Setting(containerEl).setName("API designer settings").setHeading();
     header.createEl("p", {
       text: "Customize how your API endpoint cards look.",
     });
@@ -67,7 +60,6 @@ class APIDesignerSettingTab extends PluginSettingTab {
               this.plugin.settings.customThemeJson = "";
               this.plugin.settings.customTheme = null;
               await this.plugin.saveSettings();
-              this.plugin.applyCustomTheme();
               return;
             }
 
@@ -77,7 +69,7 @@ class APIDesignerSettingTab extends PluginSettingTab {
               this.plugin.settings.customTheme = parsed;
             } catch {
               this.errorEl = containerEl.createEl("div", {
-                text: "⚠ Invalid JSON format",
+                text: "⚠ Invalid json format",
                 cls: "api-theme-error"
               });
               this.errorEl.setCssStyles({
@@ -87,7 +79,6 @@ class APIDesignerSettingTab extends PluginSettingTab {
               });
             }
             await this.plugin.saveSettings();
-            this.plugin.applyCustomTheme();
           });
 
         text.inputEl.addClass("api-theme-json-input")
@@ -97,12 +88,12 @@ class APIDesignerSettingTab extends PluginSettingTab {
 
 interface APIProp {
   name: string;
-  type: "string" | "number" | "boolean" | "object" | "array" | string;
+  type: string;
   items?: APIProp[] | APIProp;
 }
 
 interface APIEndpoint {
-  method: "GET" | "POST" | "PUT" | "DELETE" | string;
+  method: string;
   endpoint: string;
   requestBody: APIProp[];
   responseBody: APIProp[];
@@ -110,13 +101,11 @@ interface APIEndpoint {
 
 export default class APIDesignerPlugin extends Plugin {
   settings: APIDesignerSettings;
-  private CUSTOM_STYLE_ID = "api-designer-custom-style";
 
   async onload() {
     await this.loadSettings();
-    this.applyCustomTheme();
 
-    this.addRibbonIcon("code", "Add API Endpoint", async () => {
+    this.addRibbonIcon("code", "Add API endpoint", async () => {
       const view = this.app.workspace.getActiveViewOfType(MarkdownView);
       if (!view) return;
       const editor = view.editor;
@@ -148,34 +137,36 @@ export default class APIDesignerPlugin extends Plugin {
           return;
         }
 
-        const originalBlock = "```api-endpoints\n" + source + "\n```";
+        const codeBlock: HTMLElement = el.closest(".block-language-api-endpoints");
+        if (!codeBlock) return;
 
-        const info = ctx.getSectionInfo(el);
+        const info = ctx.getSectionInfo(codeBlock);
         if (!info) return;
 
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (!view) return;
-        const editor: any = view.editor;
+        const editor: Editor = view.editor;
 
         const updateNote = () => {
           setTimeout(() => {
             const doc = editor.getValue();
+            const lines = doc.split("\n");
 
-            const startOffset = info?.lineStart ? editor.posToOffset({ line: info.lineStart, ch: 0 }) : -1;
-            const endOffset = info?.lineEnd ? editor.posToOffset({ line: info.lineEnd, ch: 0 }) : -1;
-            if (startOffset === -1 || endOffset === -1) return;
+            let start = info.lineStart;
+            while (start >= 0 && !/^```api-endpoints\b/.test(lines[start])) start--;
+            if (start < 0) return;
 
-            const sectionText = doc.slice(startOffset, endOffset);
-            const blockIndex = sectionText.indexOf(originalBlock);
-
-            if (blockIndex === -1) return;
-
-            const absoluteStart = startOffset + blockIndex;
-            const absoluteEnd = absoluteStart + originalBlock.length;
+            let end = start + 1;
+            while (end < lines.length && !/^```/.test(lines[end])) end++;
+            if (end >= lines.length) end = lines.length - 1;
 
             const newBlock = "```api-endpoints\n" + JSON.stringify(endpoints, null, 2) + "\n```";
 
-            editor.replaceRange(newBlock, editor.offsetToPos(absoluteStart), editor.offsetToPos(absoluteEnd));
+            editor.replaceRange(
+              newBlock,
+              { line: start, ch: 0 },
+              { line: end, ch: lines[end].length }
+            );
           }, 0);
         };
 
@@ -203,7 +194,7 @@ export default class APIDesignerPlugin extends Plugin {
           };
           refreshMethodClass();
           methodSelect.onchange = () => {
-            ep.method = methodSelect.value as APIEndpoint["method"];
+            ep.method = methodSelect.value;
             refreshMethodClass();
             debouncedUpdate();
           };
@@ -227,40 +218,6 @@ export default class APIDesignerPlugin extends Plugin {
           const img = sendBtn.createEl("img", { cls: "send-icon" });
           img.src = "data:image/svg+xml;base64,PHN2ZwogICAgICAgICAgICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgICAgICAgIHdpZHRoPSIxNiIKICAgICAgICAgICAgaGVpZ2h0PSIxNiIKICAgICAgICAgICAgdmlld0JveD0iMCAwIDI0IDI0IgogICAgICAgICAgICBmaWxsPSJub25lIgogICAgICAgICAgICBzdHJva2U9ImN1cnJlbnRDb2xvciIKICAgICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyIgogICAgICAgICAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiCiAgICAgICAgICAgIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNlbmQtaG9yaXpvbnRhbC1pY29uIGx1Y2lkZS1zZW5kLWhvcml6b250YWwiCiAgICAgICAgICAgID4KICAgICAgICAgICAgPHBhdGggZD0iTTMuNzE0IDMuMDQ4YS40OTguNDk4IDAgMCAwLS42ODMuNjI3bDIuODQzIDcuNjI3YTIgMiAwIDAgMSAwIDEuMzk2bC0yLjg0MiA3LjYyN2EuNDk4LjQ5OCAwIDAgMCAuNjgyLjYyN2wxOC04LjVhLjUuNSAwIDAgMCAwLS45MDR6Ii8+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik02IDEyaDE2Ii8+CiAgICAgICAgICA8L3N2Zz4=";
           img.alt = "Send";
-
-          // TODO:
-          sendBtn.onclick = async () => {
-            // const url = endpointInput.value;
-            // const method = methodSelect.value;
-            // let body: any = null;
-
-            // if (["POST", "PUT"].includes(method)) {
-            //   body = {};
-            //   ep.requestBody.forEach((p) => {
-            //     body[p.name] = `example-${p.type}`;
-            //   });
-            // }
-
-            // try {
-            //   const res = await requestUrl({
-            //     url,
-            //     method,
-            //     headers: { "Content-Type": "application/json" },
-            //     body: body ? JSON.stringify(body) : undefined,
-            //   });
-            //   const contentType = res.headers["content-type"] || "text/plain";
-            //   const { lang, html } = formatAndHighlight(res.text, contentType);
-
-            //   responseBox.empty();
-            //   const pre = responseBox.createEl("pre", { cls: "api-response" });
-            //   const code = pre.createEl("code", { cls: `language-${lang}` });
-            //   code.innerHTML = html;
-            // } catch (err) {
-            //   responseBox.style.display = "block";
-            //   responseBox.textContent = `Error: ${err.message}`;
-            //   console.log(err);
-            // }
-          };
 
           const body = card.createDiv({ cls: "body" });
 
@@ -291,42 +248,13 @@ export default class APIDesignerPlugin extends Plugin {
     await this.saveData(this.settings);
   }
 
-  private buildCustomThemeCss(themeObj: Record<string, string>) {
-    const lines: string[] = [];
-    for (const [rawKey, value] of Object.entries(themeObj)) {
-      const key = rawKey.startsWith("api-") ? rawKey : `api-${rawKey}`;
-      lines.push(`  --${key}: ${value};`);
-    }
-    return `.api-card {\n${lines.join("\n")}\n}\n`;
-  }
-
-  private ensureCustomStyleElement(): HTMLStyleElement {
-    let el = document.getElementById(this.CUSTOM_STYLE_ID) as HTMLStyleElement | null;
-    if (!el) {
-      el = document.createElement("style");
-      el.id = this.CUSTOM_STYLE_ID;
-      document.head.appendChild(el);
-    }
-    return el;
-  }
-
   applyCustomTheme() {
-    this.removeCustomThemeStyle();
-
     const theme = this.settings.customTheme;
-    if (!theme || typeof theme !== "object") {
-      return;
-    }
+    if (!theme) return;
 
-    const css = this.buildCustomThemeCss(theme);
-    const styleEl = this.ensureCustomStyleElement();
-    styleEl.textContent = css;
-  }
-
-  removeCustomThemeStyle() {
-    const existing = document.getElementById(this.CUSTOM_STYLE_ID);
-    if (existing) {
-      existing.remove();
+    for (const [rawKey, value] of Object.entries(theme)) {
+      const key = rawKey.startsWith("api-") ? rawKey : `api-${rawKey}`;
+      document.body.style.setProperty(`--${key}`, value);
     }
   }
 
@@ -371,7 +299,7 @@ function renderPropRow(
 
   const nameInput = row.createEl("input", { type: "text" });
   nameInput.value = prop.name ?? "";
-  nameInput.placeholder = "property name";
+  nameInput.placeholder = "Property name";
   nameInput.onblur = () => {
     prop.name = nameInput.value;
     onUpdate();
@@ -387,7 +315,7 @@ function renderPropRow(
   });
 
   typeSelect.onchange = () => {
-    prop.type = typeSelect.value as APIProp["type"];
+    prop.type = typeSelect.value;
 
     if (prop.type === "object") {
       if (!Array.isArray(prop.items)) prop.items = [];
@@ -432,7 +360,7 @@ function renderPropRow(
       sc.empty();
       const label = sc.createEl("div", { text: "Array items" });
       label.addClass("sub-label");
-      renderPropRow(sc, prop.items as APIProp, onUpdate, () => {
+      renderPropRow(sc, prop.items, onUpdate, () => {
         prop.items = { name: "item", type: "string" };
         renderSub();
         onUpdate();
@@ -445,32 +373,7 @@ function renderPropRow(
   renderSub();
 }
 
-// function formatAndHighlight(body: string, contentType: string): { lang: string; html: string } {
-//   const Prism = window.Prism;
-//   let lang = "plaintext";
-//   let formatted = body;
-
-//   try {
-//     if (contentType.includes("application/json")) {
-//       lang = "json";
-//       formatted = JSON.stringify(JSON.parse(body), null, 2);
-//     } else if (contentType.includes("xml")) {
-//       lang = "xml";
-//       formatted = body.replace(/></g, ">\n<");
-//     }
-//   } catch {
-//     lang = "plaintext";
-//     formatted = body;
-//   }
-
-//   if (Prism && Prism.languages[lang]) {
-//     return { lang, html: Prism.highlight(formatted, Prism.languages[lang], lang) };
-//   }
-
-//   return { lang, html: formatted };
-// }
-
-function debounce<T extends (...a: any[]) => void>(fn: T, wait = 200) {
+function debounce<T extends (...a: unknown[]) => void>(fn: T, wait = 200) {
   let t: number | null = null;
   return (...args: Parameters<T>) => {
     if (t) window.clearTimeout(t);

@@ -120,6 +120,7 @@
 
 .title-wrapper h5 {
   margin: 8px;
+  color: var(--text-normal);
 }
 
 .inner-body {
