@@ -6,6 +6,7 @@ import {
   PluginSettingTab,
   Setting,
   Editor,
+  PluginManifest,
 } from "obsidian";
 interface APIDesignerSettings {
   customThemeJson: string;
@@ -30,17 +31,19 @@ class APIDesignerSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    const header = containerEl.createDiv("api-designer-settings-header");
-    new Setting(containerEl).setName("API designer settings").setHeading();
-    header.createEl("p", {
-      text: "Customize how your API endpoint cards look.",
+    containerEl.createEl("h1", { text: "API Designer" });
+    containerEl.createEl("p", { text: "Created by " }).createEl("a", {
+      text: "Ruveyda",
+      href: "https://github.com/ruveydayilmaz",
     });
-
     new Setting(containerEl)
-      .setName("Custom theme JSON")
+      .setName("Customize theme")
+      .setDesc("Customize how your API endpoint cards look.")
       .setDesc(
         createFragment((frag) => {
-          frag.appendText("Paste a JSON object defining custom CSS variables. ");
+          frag.appendText(
+            "Paste a JSON object defining custom CSS variables. "
+          );
           frag.createEl("br");
           frag.appendText("You can find a JSON example on ");
           frag.createEl("a", {
@@ -49,12 +52,15 @@ class APIDesignerSettingTab extends PluginSettingTab {
           });
         })
       )
-      .addTextArea(text => {
+      .addTextArea((text) => {
         text
-          .setPlaceholder("{ \"blue\": \"#4dabf7\" }")
+          .setPlaceholder('{ "blue": "#4dabf7" }')
           .setValue(this.plugin.settings.customThemeJson || "")
           .onChange(async (value) => {
-            if (this.errorEl) { this.errorEl.remove(); this.errorEl = null; }
+            if (this.errorEl) {
+              this.errorEl.remove();
+              this.errorEl = null;
+            }
 
             if (!value.trim()) {
               this.plugin.settings.customThemeJson = "";
@@ -69,20 +75,20 @@ class APIDesignerSettingTab extends PluginSettingTab {
               this.plugin.settings.customTheme = parsed;
             } catch {
               this.errorEl = containerEl.createEl("div", {
-                text: "⚠ Invalid json format",
-                cls: "api-theme-error"
+                text: "⚠ Invalid JSON format",
+                cls: "api-theme-error",
               });
               this.errorEl.setCssStyles({
                 color: "var(--color-red, red)",
                 marginTop: "4px",
-                fontSize: "0.9em"
+                fontSize: "0.9em",
               });
             }
             await this.plugin.saveSettings();
           });
 
-        text.inputEl.addClass("api-theme-json-input")
-      })
+        text.inputEl.addClass("api-theme-json-input");
+      });
   }
 }
 
@@ -102,10 +108,18 @@ interface APIEndpoint {
 export default class APIDesignerPlugin extends Plugin {
   settings: APIDesignerSettings;
 
+  constructor(app: App, manifest: PluginManifest) {
+    super(app, manifest);
+    this.settings = {
+      customThemeJson: "",
+      customTheme: null,
+    };
+  }
+
   async onload() {
     await this.loadSettings();
 
-    this.addRibbonIcon("code", "Add API endpoint", async () => {
+    this.addRibbonIcon("code", "Add API endpoint", () => {
       const view = this.app.workspace.getActiveViewOfType(MarkdownView);
       if (!view) return;
       const editor = view.editor;
@@ -137,7 +151,9 @@ export default class APIDesignerPlugin extends Plugin {
           return;
         }
 
-        const codeBlock: HTMLElement = el.closest(".block-language-api-endpoints");
+        const codeBlock: HTMLElement | null = el.closest(
+          ".block-language-api-endpoints"
+        );
         if (!codeBlock) return;
 
         const info = ctx.getSectionInfo(codeBlock);
@@ -153,14 +169,18 @@ export default class APIDesignerPlugin extends Plugin {
             const lines = doc.split("\n");
 
             let start = info.lineStart;
-            while (start >= 0 && !/^```api-endpoints\b/.test(lines[start])) start--;
+            while (start >= 0 && !/^```api-endpoints\b/.test(lines[start]))
+              start--;
             if (start < 0) return;
 
             let end = start + 1;
             while (end < lines.length && !/^```/.test(lines[end])) end++;
             if (end >= lines.length) end = lines.length - 1;
 
-            const newBlock = "```api-endpoints\n" + JSON.stringify(endpoints, null, 2) + "\n```";
+            const newBlock =
+              "```api-endpoints\n" +
+              JSON.stringify(endpoints, null, 2) +
+              "\n```";
 
             editor.replaceRange(
               newBlock,
@@ -199,7 +219,6 @@ export default class APIDesignerPlugin extends Plugin {
             debouncedUpdate();
           };
 
-
           const endpointInput = header.createEl("input", {
             type: "text",
             cls: "endpoint-input",
@@ -216,7 +235,8 @@ export default class APIDesignerPlugin extends Plugin {
           sendBtn.disabled = true;
 
           const img = sendBtn.createEl("img", { cls: "send-icon" });
-          img.src = "data:image/svg+xml;base64,PHN2ZwogICAgICAgICAgICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgICAgICAgIHdpZHRoPSIxNiIKICAgICAgICAgICAgaGVpZ2h0PSIxNiIKICAgICAgICAgICAgdmlld0JveD0iMCAwIDI0IDI0IgogICAgICAgICAgICBmaWxsPSJub25lIgogICAgICAgICAgICBzdHJva2U9ImN1cnJlbnRDb2xvciIKICAgICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyIgogICAgICAgICAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiCiAgICAgICAgICAgIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNlbmQtaG9yaXpvbnRhbC1pY29uIGx1Y2lkZS1zZW5kLWhvcml6b250YWwiCiAgICAgICAgICAgID4KICAgICAgICAgICAgPHBhdGggZD0iTTMuNzE0IDMuMDQ4YS40OTguNDk4IDAgMCAwLS42ODMuNjI3bDIuODQzIDcuNjI3YTIgMiAwIDAgMSAwIDEuMzk2bC0yLjg0MiA3LjYyN2EuNDk4LjQ5OCAwIDAgMCAuNjgyLjYyN2wxOC04LjVhLjUuNSAwIDAgMCAwLS45MDR6Ii8+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik02IDEyaDE2Ii8+CiAgICAgICAgICA8L3N2Zz4=";
+          img.src =
+            "data:image/svg+xml;base64,PHN2ZwogICAgICAgICAgICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgICAgICAgIHdpZHRoPSIxNiIKICAgICAgICAgICAgaGVpZ2h0PSIxNiIKICAgICAgICAgICAgdmlld0JveD0iMCAwIDI0IDI0IgogICAgICAgICAgICBmaWxsPSJub25lIgogICAgICAgICAgICBzdHJva2U9ImN1cnJlbnRDb2xvciIKICAgICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyIgogICAgICAgICAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiCiAgICAgICAgICAgIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNlbmQtaG9yaXpvbnRhbC1pY29uIGx1Y2lkZS1zZW5kLWhvcml6b250YWwiCiAgICAgICAgICAgID4KICAgICAgICAgICAgPHBhdGggZD0iTTMuNzE0IDMuMDQ4YS40OTguNDk4IDAgMCAwLS42ODMuNjI3bDIuODQzIDcuNjI3YTIgMiAwIDAgMSAwIDEuMzk2bC0yLjg0MiA3LjYyN2EuNDk4LjQ5OCAwIDAgMCAuNjgyLjYyN2wxOC04LjVhLjUuNSAwIDAgMCAwLS45MDR6Ii8+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik02IDEyaDE2Ii8+CiAgICAgICAgICA8L3N2Zz4=";
           img.alt = "Send";
 
           const body = card.createDiv({ cls: "body" });
@@ -231,7 +251,9 @@ export default class APIDesignerPlugin extends Plugin {
           const resList = wrapperRight.createDiv({ cls: "inner-body" });
           renderPropList(resList, ep.responseBody, () => updateNote());
 
-          const responseBox = card.createEl("pre", { cls: "api-response hidden" });
+          const responseBox = card.createEl("pre", {
+            cls: "api-response hidden",
+          });
           responseBox.createEl("code");
         });
       }
@@ -258,9 +280,8 @@ export default class APIDesignerPlugin extends Plugin {
     }
   }
 
-  onunload() { }
+  onunload() {}
 }
-
 
 // ------------ HELPERS ------------ //
 function renderPropList(
