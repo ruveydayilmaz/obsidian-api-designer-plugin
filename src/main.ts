@@ -31,11 +31,16 @@ class APIDesignerSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h1", { text: "API Designer" });
-    containerEl.createEl("p", { text: "Created by " }).createEl("a", {
-      text: "Ruveyda",
-      href: "https://github.com/ruveydayilmaz",
-    });
+    new Setting(containerEl)
+      .setName("API designer")
+      .setHeading()
+      .setClass("api-designer-settings-header");
+    containerEl
+      .createEl("p", { text: "Created by ", cls: "api-designer-settings-desc" })
+      .createEl("a", {
+        text: "Ruveyda",
+        href: "https://github.com/ruveydayilmaz",
+      });
     new Setting(containerEl)
       .setName("Customize theme")
       .setDesc("Customize how your API endpoint cards look.")
@@ -75,7 +80,7 @@ class APIDesignerSettingTab extends PluginSettingTab {
               this.plugin.settings.customTheme = parsed;
             } catch {
               this.errorEl = containerEl.createEl("div", {
-                text: "⚠ Invalid JSON format",
+                text: "⚠ Invalid format",
                 cls: "api-theme-error",
               });
               this.errorEl.setCssStyles({

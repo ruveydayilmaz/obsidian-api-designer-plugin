@@ -1,10 +1,10 @@
-.api-designer-settings-header h2 {
+.api-designer-settings-header {
   margin-bottom: 0;
   font-size: 1.4rem;
   font-weight: 600;
 }
 
-.api-designer-settings-header p {
+.api-designer-settings-desc {
   margin-top: 4px;
   margin-bottom: 16px;
   color: var(--text-muted);
@@ -57,15 +57,19 @@
   width: 100%;
   cursor: pointer;
 }
+
 .method-select.method-GET {
   background: var(--api-blue, var(--color-blue));
 }
+
 .method-select.method-POST {
   background: var(--api-green, var(--color-green));
 }
+
 .method-select.method-PUT {
   background: var(--api-yellow, var(--color-yellow));
 }
+
 .method-select.method-DELETE {
   background: var(--api-red, var(--color-red));
 }
@@ -99,6 +103,7 @@
   max-height: 200px;
   overflow: auto;
 }
+
 .api-result pre {
   margin: 0;
   white-space: pre-wrap;
@@ -184,15 +189,13 @@ select:focus {
   height: 12px;
   pointer-events: none;
 
-  mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCc+PHBhdGggZmlsbD0nYmxhY2snIGQ9J003IDEwbDUgNSA1LTV6Jy8+PC9zdmc+")
-    no-repeat center;
-  -webkit-mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCc+PHBhdGggZmlsbD0nYmxhY2snIGQ9J003IDEwbDUgNSA1LTV6Jy8+PC9zdmc+")
-    no-repeat center;
+  mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCc+PHBhdGggZmlsbD0nYmxhY2snIGQ9J003IDEwbDUgNSA1LTV6Jy8+PC9zdmc+") no-repeat center;
+  -webkit-mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCc+PHBhdGggZmlsbD0nYmxhY2snIGQ9J003IDEwbDUgNSA1LTV6Jy8+PC9zdmc+") no-repeat center;
 
   background-color: var(--interactive-accent);
 }
 
-.select-wrapper select:focus + .select-icon {
+.select-wrapper select:focus+.select-icon {
   transform: rotate(180deg);
 }
 
@@ -222,6 +225,7 @@ button {
 .inner-body-item button.delete-btn {
   background: var(--background-secondary);
 }
+
 .inner-body-item button.delete-btn:hover {
   background: var(--api-red, var(--color-red));
 }
@@ -233,6 +237,7 @@ button {
   margin-top: 4px;
   margin-bottom: 8px;
 }
+
 .inner-body button.add-btn:hover {
   opacity: 0.85;
 }
