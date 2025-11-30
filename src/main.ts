@@ -31,10 +31,6 @@ class APIDesignerSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    new Setting(containerEl)
-      .setName("API designer")
-      .setHeading()
-      .setClass("api-designer-settings-header");
     containerEl
       .createEl("p", { text: "Created by ", cls: "api-designer-settings-desc" })
       .createEl("a", {
@@ -80,7 +76,7 @@ class APIDesignerSettingTab extends PluginSettingTab {
               this.plugin.settings.customTheme = parsed;
             } catch {
               this.errorEl = containerEl.createEl("div", {
-                text: "⚠ Invalid format",
+                text: "Invalid format",
                 cls: "api-theme-error",
               });
               this.errorEl.setCssStyles({
