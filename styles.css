@@ -11,7 +11,7 @@
   font-size: 0.9rem;
 }
 
-.setting-item textarea {
+.api-designer-setting-item textarea {
   border-radius: 6px;
   padding: 8px;
   font-size: 0.9rem;
@@ -19,13 +19,13 @@
   height: 100%;
 }
 
-.api-theme-json-input {
+.api-designer-api-theme-json-input {
   width: 100%;
   min-height: 250px;
   font-family: var(--font-monospace);
 }
 
-.api-card {
+.api-designer-api-card {
   border: 1px solid var(--background-modifier-border);
   background-color: var(--background-secondary);
   border-radius: 8px;
@@ -34,7 +34,7 @@
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
 }
 
-.api-header {
+.api-designer-api-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -42,12 +42,12 @@
   margin-bottom: 10px;
 }
 
-.endpoint-input {
+.api-designer-endpoint-input {
   flex: 1 1 100%;
   min-width: 200px;
 }
 
-.method-select {
+.api-designer-method-select {
   border-radius: 6px;
   padding: 2px 8px;
   color: white;
@@ -58,43 +58,42 @@
   cursor: pointer;
 }
 
-.method-select.method-GET {
+.api-designer-method-select.method-GET {
   background: var(--api-blue, var(--color-blue));
 }
 
-.method-select.method-POST {
+.api-designer-method-select.method-POST {
   background: var(--api-green, var(--color-green));
 }
 
-.method-select.method-PUT {
+.api-designer-method-select.method-PUT {
   background: var(--api-yellow, var(--color-yellow));
 }
 
-.method-select.method-DELETE {
+.api-designer-method-select.method-DELETE {
   background: var(--api-red, var(--color-red));
 }
 
-.api-header .send-btn {
+.api-designer-api-header .api-designer-send-btn {
   background: var(--interactive-accent);
   color: var(--text-on-accent, white);
   font-size: 0.9rem;
   border-radius: 6px;
   padding: 4px 8px;
-  width: 100%;
 }
 
-.api-header .send-btn:hover {
+.api-designer-api-header .api-designer-send-btn:hover {
   background: var(--interactive-accent-hover);
 }
 
-.send-btn img.send-icon {
+.api-designer-send-btn img.api-designer-send-icon {
   color: var(--text-on-accent);
   width: 16px;
   height: 16px;
   max-width: 16px;
 }
 
-.api-result {
+.api-designer-api-result {
   margin-top: 12px;
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
@@ -104,31 +103,31 @@
   overflow: auto;
 }
 
-.api-result pre {
+.api-designer-api-result pre {
   margin: 0;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
-.body {
+.api-designer-body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.title-wrapper {
+.api-designer-title-wrapper {
   display: flex;
   text-align: center;
   flex-direction: column;
   flex: 1 1 100%;
 }
 
-.title-wrapper h5 {
+.api-designer-title-wrapper h5 {
   margin: 8px;
   color: var(--text-normal);
 }
 
-.inner-body {
+.api-designer-inner-body {
   flex: 1 1 100%;
   min-width: 0;
   padding: 8px;
@@ -137,7 +136,7 @@
   border: 1px solid var(--background-modifier-border);
 }
 
-.inner-body-item {
+.api-designer-inner-body-item {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -146,43 +145,43 @@
   margin-bottom: 4px;
 }
 
-.inner-body-item input[type="text"],
-.inner-body-item .select-wrapper,
-.inner-body-item button.delete-btn {
+.api-designer-inner-body-item input[type="text"],
+.api-designer-inner-body-item .select-wrapper,
+.api-designer-inner-body-item button.delete-btn {
   width: auto;
 }
 
-.inner-body-item input[type="text"] {
+.api-designer-inner-body-item input[type="text"] {
   background: transparent;
   border-color: var(--background-modifier-border);
 }
 
-.type-select {
+.api-designer-type-select {
   width: 100%;
 }
 
-.select-wrapper {
+.api-designer-select-wrapper {
   position: relative;
   display: inline-flex;
   align-items: center;
   color: var(--text-normal);
 }
 
-.select-wrapper select {
+.api-designer-select-wrapper select {
   appearance: none;
   padding-right: 20px;
   background-color: var(--background-secondary);
   border-color: var(--background-modifier-border);
 }
 
-input[type="text"]:focus,
+.api-designer-api-card input[type="text"]:focus,
 select:focus {
   outline: 1px solid var(--color-accent);
   outline-offset: 1px;
   box-shadow: none;
 }
 
-.select-icon {
+.api-designer-select-icon {
   position: absolute;
   right: 6px;
   width: 12px;
@@ -195,11 +194,11 @@ select:focus {
   background-color: var(--interactive-accent);
 }
 
-.select-wrapper select:focus+.select-icon {
+.api-designer-select-wrapper select:focus+.api-designer-select-icon {
   transform: rotate(180deg);
 }
 
-.sub-fields {
+.api-designer-sub-fields {
   display: grid;
   grid-auto-rows: auto;
   row-gap: 8px;
@@ -209,12 +208,12 @@ select:focus {
   margin-left: 2px;
 }
 
-.sub-label {
+.api-designer-sub-label {
   text-align: left;
   font-size: 14px;
 }
 
-button {
+.api-designer button {
   padding: 4px 8px;
   border-radius: 6px;
   border: none;
@@ -222,15 +221,15 @@ button {
   font-size: 0.85rem;
 }
 
-.inner-body-item button.delete-btn {
+.api-designer-inner-body-item button.api-designer-delete-btn {
   background: var(--background-secondary);
 }
 
-.inner-body-item button.delete-btn:hover {
+.api-designer-inner-body-item button.api-designer-delete-btn:hover {
   background: var(--api-red, var(--color-red));
 }
 
-.inner-body button.add-btn {
+.api-designer-inner-body button.api-designer-add-btn {
   background: var(--color-accent);
   color: var(--text-on-accent);
   width: 100%;
@@ -238,11 +237,11 @@ button {
   margin-bottom: 8px;
 }
 
-.inner-body button.add-btn:hover {
+.api-designer-inner-body button.api-designer-add-btn:hover {
   opacity: 0.85;
 }
 
-.api-response {
+.api-designer-api-response {
   background: var(--background-primary);
   color: var(--text-normal);
   padding: 8px;
@@ -255,51 +254,63 @@ button {
   overflow: auto;
 }
 
-.api-response code {
+.api-designer-api-response code {
   font-family: var(--font-monospace);
   font-size: 0.9em;
   white-space: pre;
 }
 
-.api-response.hidden {
+.api-designer-api-response.hidden {
   display: none;
 }
 
+.api-designer-error {
+  color: var(--color-red, red);
+  margin-top: 4px;
+  font-size: 0.9em;
+}
+
+@media (max-width: 600px) {
+  .api-designer-send-btn {
+    width: 100%;
+  }
+}
+
 @media (min-width: 600px) {
-  .endpoint-input {
+  .api-designer-endpoint-input {
     flex: 1 1 auto;
   }
 }
 
 @media (min-width: 768px) {
-  .inner-body {
+  .api-designer-inner-body {
     flex: 1 1 0;
   }
 
-  .title-wrapper {
+  .api-designer-title-wrapper {
     flex: 1 1 0;
   }
 }
 
 @media (min-width: 600px) {
-  .inner-body-item {
+  .api-designer-inner-body-item {
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 8px;
   }
 
-  .inner-body-item input[type="text"],
-  .inner-body-item .select-wrapper,
-  .inner-body-item button.delete-btn {
+  .api-designer-inner-body-item input[type="text"],
+  .api-designer-inner-body-item .select-wrapper,
+  .api-designer-inner-body-item button.delete-btn {
     width: 100%;
   }
 
-  .api-header .send-btn {
+  .api-designer-api-header .send-btn {
     width: min-content;
   }
 
-  .method-select {
+  .api-designer-method-select {
     width: min-content;
   }
 }

@@ -1,8 +1,8 @@
-# Obsidian API Designer Plugin
+# API Designer Plugin
 
 A plugin for [Obsidian](https://obsidian.md) that lets you **design and document API endpoints visually** without leaving your notes.
 
-![Obsidian API Designer](https://github.com/user-attachments/assets/8ba8f2a1-ac79-4bd1-a64e-c12a69ab7ff5)
+![API Designer](https://github.com/user-attachments/assets/8ba8f2a1-ac79-4bd1-a64e-c12a69ab7ff5)
 
 ## Features
 

@@ -4,7 +4,6 @@
   "description": "Obsidian plugin to design API endpoints visually.",
   "main": "main.js",
   "scripts": {
-    "dev": "obsidian-plugin dev --with-stylesheet styles.css src/main.ts",
     "build": "tsc"
   },
   "keywords": [

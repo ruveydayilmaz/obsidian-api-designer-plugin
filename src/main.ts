@@ -7,6 +7,7 @@ import {
   Setting,
   Editor,
   PluginManifest,
+  debounce,
 } from "obsidian";
 interface APIDesignerSettings {
   customThemeJson: string;
@@ -77,13 +78,9 @@ class APIDesignerSettingTab extends PluginSettingTab {
             } catch {
               this.errorEl = containerEl.createEl("div", {
                 text: "Invalid format",
-                cls: "api-theme-error",
+                cls: "api-designer-api-theme-error",
               });
-              this.errorEl.setCssStyles({
-                color: "var(--color-red, red)",
-                marginTop: "4px",
-                fontSize: "0.9em",
-              });
+              this.errorEl.addClass("api-designer-error");
             }
             await this.plugin.saveSettings();
           });
@@ -120,25 +117,14 @@ export default class APIDesignerPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
 
-    this.addRibbonIcon("code", "Add API endpoint", () => {
-      const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-      if (!view) return;
-      const editor = view.editor;
-      const sample: APIEndpoint = {
-        method: "POST",
-        endpoint: "/login",
-        requestBody: [
-          { name: "email", type: "string" },
-          { name: "password", type: "string" },
-        ],
-        responseBody: [
-          { name: "success", type: "string" },
-          { name: "message", type: "string" },
-        ],
-      };
-      editor.replaceSelection(
-        "```api-endpoints\n" + JSON.stringify([sample], null, 2) + "\n```\n"
-      );
+    this.addCommand({
+      id: "add-api-endpoint",
+      name: "Add API Endpoint",
+      callback: () => this.insertSampleEndpoint(),
+    });
+
+    this.addRibbonIcon("code", "Add API Endpoint", () => {
+      this.insertSampleEndpoint();
     });
 
     this.registerMarkdownCodeBlockProcessor(
@@ -194,11 +180,11 @@ export default class APIDesignerPlugin extends Plugin {
         const debouncedUpdate = debounce(updateNote, 120);
 
         endpoints.forEach((ep) => {
-          const card = el.createDiv({ cls: `api-card` });
-          const header = card.createDiv({ cls: "api-header" });
+          const card = el.createDiv({ cls: `api-designer-api-card` });
+          const header = card.createDiv({ cls: "api-designer-api-header" });
 
           const methodSelect = header.createEl("select", {
-            cls: "method-select",
+            cls: "api-designer-method-select",
           });
           ["GET", "POST", "PUT", "DELETE"].forEach((m) => {
             const opt = methodSelect.createEl("option", { text: m, value: m });
@@ -222,7 +208,7 @@ export default class APIDesignerPlugin extends Plugin {
 
           const endpointInput = header.createEl("input", {
             type: "text",
-            cls: "endpoint-input",
+            cls: "api-designer-endpoint-input",
           });
           endpointInput.value = ep.endpoint;
           endpointInput.placeholder = "/endpoint";
@@ -231,29 +217,29 @@ export default class APIDesignerPlugin extends Plugin {
             updateNote();
           };
 
-          const sendBtn = header.createEl("button", { cls: "send-btn" });
+          const sendBtn = header.createEl("button", { cls: "api-designer-send-btn" });
           sendBtn.ariaLabel = "WIP";
           sendBtn.disabled = true;
 
-          const img = sendBtn.createEl("img", { cls: "send-icon" });
+          const img = sendBtn.createEl("img", { cls: "api-designer-send-icon" });
           img.src =
             "data:image/svg+xml;base64,PHN2ZwogICAgICAgICAgICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgICAgICAgIHdpZHRoPSIxNiIKICAgICAgICAgICAgaGVpZ2h0PSIxNiIKICAgICAgICAgICAgdmlld0JveD0iMCAwIDI0IDI0IgogICAgICAgICAgICBmaWxsPSJub25lIgogICAgICAgICAgICBzdHJva2U9ImN1cnJlbnRDb2xvciIKICAgICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyIgogICAgICAgICAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiCiAgICAgICAgICAgIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNlbmQtaG9yaXpvbnRhbC1pY29uIGx1Y2lkZS1zZW5kLWhvcml6b250YWwiCiAgICAgICAgICAgID4KICAgICAgICAgICAgPHBhdGggZD0iTTMuNzE0IDMuMDQ4YS40OTguNDk4IDAgMCAwLS42ODMuNjI3bDIuODQzIDcuNjI3YTIgMiAwIDAgMSAwIDEuMzk2bC0yLjg0MiA3LjYyN2EuNDk4LjQ5OCAwIDAgMCAuNjgyLjYyN2wxOC04LjVhLjUuNSAwIDAgMCAwLS45MDR6Ii8+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik02IDEyaDE2Ii8+CiAgICAgICAgICA8L3N2Zz4=";
           img.alt = "Send";
 
-          const body = card.createDiv({ cls: "body" });
+          const body = card.createDiv({ cls: "api-designer-body" });
 
-          const wrapperLeft = body.createDiv({ cls: "title-wrapper" });
+          const wrapperLeft = body.createDiv({ cls: "api-designer-title-wrapper" });
           wrapperLeft.createEl("h5", { text: "Request" });
-          const reqList = wrapperLeft.createDiv({ cls: "inner-body" });
+          const reqList = wrapperLeft.createDiv({ cls: "api-designer-inner-body" });
           renderPropList(reqList, ep.requestBody, () => updateNote());
 
-          const wrapperRight = body.createDiv({ cls: "title-wrapper" });
+          const wrapperRight = body.createDiv({ cls: "api-designer-title-wrapper" });
           wrapperRight.createEl("h5", { text: "Response" });
-          const resList = wrapperRight.createDiv({ cls: "inner-body" });
+          const resList = wrapperRight.createDiv({ cls: "api-designer-inner-body" });
           renderPropList(resList, ep.responseBody, () => updateNote());
 
           const responseBox = card.createEl("pre", {
-            cls: "api-response hidden",
+            cls: "api-designer-api-response hidden",
           });
           responseBox.createEl("code");
         });
@@ -281,7 +267,31 @@ export default class APIDesignerPlugin extends Plugin {
     }
   }
 
-  onunload() {}
+  private insertSampleEndpoint() {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view) return;
+
+    const editor = view.editor;
+
+    const sample: APIEndpoint = {
+      method: "POST",
+      endpoint: "/login",
+      requestBody: [
+        { name: "email", type: "string" },
+        { name: "password", type: "string" },
+      ],
+      responseBody: [
+        { name: "success", type: "string" },
+        { name: "message", type: "string" },
+      ],
+    };
+
+    editor.replaceSelection(
+      "```api-endpoints\n" + JSON.stringify([sample], null, 2) + "\n```\n"
+    );
+  }
+
+  onunload() { }
 }
 
 // ------------ HELPERS ------------ //
@@ -303,7 +313,7 @@ function renderPropList(
     });
   });
 
-  const addBtn = container.createEl("button", { text: "New", cls: "add-btn" });
+  const addBtn = container.createEl("button", { text: "New", cls: "api-designer-add-btn" });
   addBtn.onclick = () => {
     props.push({ name: "", type: "string" });
     renderPropList(container, props, onUpdate);
@@ -317,7 +327,7 @@ function renderPropRow(
   onUpdate: () => void,
   onDelete: () => void
 ) {
-  const row = container.createDiv({ cls: "inner-body-item" });
+  const row = container.createDiv({ cls: "api-designer-inner-body-item" });
 
   const nameInput = row.createEl("input", { type: "text" });
   nameInput.value = prop.name ?? "";
@@ -327,10 +337,10 @@ function renderPropRow(
     onUpdate();
   };
 
-  const wrapper = row.createDiv({ cls: "select-wrapper" });
-  wrapper.createDiv({ cls: "select-icon" });
+  const wrapper = row.createDiv({ cls: "api-designer-select-wrapper" });
+  wrapper.createDiv({ cls: "api-designer-select-icon" });
 
-  const typeSelect = wrapper.createEl("select", { cls: "type-select" });
+  const typeSelect = wrapper.createEl("select", { cls: "api-designer-type-select" });
   ["string", "number", "boolean", "object", "array"].forEach((t) => {
     const opt = typeSelect.createEl("option", { text: t, value: t });
     if (prop.type === t) opt.selected = true;
@@ -351,13 +361,13 @@ function renderPropRow(
     onUpdate();
   };
 
-  const delBtn = row.createEl("button", { text: "🗑️", cls: "delete-btn" });
+  const delBtn = row.createEl("button", { text: "🗑️", cls: "api-designer-delete-btn" });
   delBtn.onclick = () => onDelete();
 
   let subContainer: HTMLDivElement | null = null;
 
   const ensureSubContainer = () => {
-    if (!subContainer) subContainer = row.createDiv({ cls: "sub-fields" });
+    if (!subContainer) subContainer = row.createDiv({ cls: "api-designer-sub-fields" });
     return subContainer;
   };
 
@@ -393,14 +403,6 @@ function renderPropRow(
   };
 
   renderSub();
-}
-
-function debounce<T extends (...a: unknown[]) => void>(fn: T, wait = 200) {
-  let t: number | null = null;
-  return (...args: Parameters<T>) => {
-    if (t) window.clearTimeout(t);
-    t = window.setTimeout(() => fn(...args), wait);
-  };
 }
 
 function deepClone<T>(obj: T): T {
