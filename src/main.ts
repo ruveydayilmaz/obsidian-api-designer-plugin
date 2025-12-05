@@ -119,11 +119,11 @@ export default class APIDesignerPlugin extends Plugin {
 
     this.addCommand({
       id: "add-api-endpoint",
-      name: "Add API Endpoint",
+      name: "Add an endpoint",
       callback: () => this.insertSampleEndpoint(),
     });
 
-    this.addRibbonIcon("code", "Add API Endpoint", () => {
+    this.addRibbonIcon("code", "Add an endpoint", () => {
       this.insertSampleEndpoint();
     });
 
