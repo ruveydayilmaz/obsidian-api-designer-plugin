@@ -175,7 +175,7 @@
 }
 
 .api-designer-api-card input[type="text"]:focus,
-select:focus {
+.api-designer-api-card select:focus {
   outline: 1px solid var(--color-accent);
   outline-offset: 1px;
   box-shadow: none;

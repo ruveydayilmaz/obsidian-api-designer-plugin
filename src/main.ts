@@ -120,7 +120,16 @@ export default class APIDesignerPlugin extends Plugin {
     this.addCommand({
       id: "add-api-endpoint",
       name: "Add an endpoint",
-      callback: () => this.insertSampleEndpoint(),
+      checkCallback: (checking: boolean) => {
+        const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        if (!mdView) return false;
+
+        if (!checking) {
+          this.insertSampleEndpoint();
+        }
+
+        return true;
+      },
     });
 
     this.addRibbonIcon("code", "Add an endpoint", () => {
