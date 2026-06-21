@@ -185,14 +185,7 @@
 .api-designer-select-icon {
   position: absolute;
   right: 6px;
-  width: 12px;
-  height: 12px;
   pointer-events: none;
-
-  mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCc+PHBhdGggZmlsbD0nYmxhY2snIGQ9J003IDEwbDUgNSA1LTV6Jy8+PC9zdmc+") no-repeat center;
-  -webkit-mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAyNCAyNCc+PHBhdGggZmlsbD0nYmxhY2snIGQ9J003IDEwbDUgNSA1LTV6Jy8+PC9zdmc+") no-repeat center;
-
-  background-color: var(--interactive-accent);
 }
 
 .api-designer-select-wrapper select:focus+.api-designer-select-icon {

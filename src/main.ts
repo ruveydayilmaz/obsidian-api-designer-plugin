@@ -8,6 +8,7 @@ import {
   Editor,
   PluginManifest,
   debounce,
+  setIcon,
 } from "obsidian";
 interface APIDesignerSettings {
   customThemeJson: string;
@@ -160,7 +161,7 @@ export default class APIDesignerPlugin extends Plugin {
         const editor: Editor = view.editor;
 
         const updateNote = () => {
-          activeWindow.setTimeout(() => {
+          window.setTimeout(() => {
             const doc = editor.getValue();
             const lines = doc.split("\n");
 
@@ -230,10 +231,8 @@ export default class APIDesignerPlugin extends Plugin {
           sendBtn.ariaLabel = "WIP";
           sendBtn.disabled = true;
 
-          const img = sendBtn.createEl("img", { cls: "api-designer-send-icon" });
-          img.src =
-            "data:image/svg+xml;base64,PHN2ZwogICAgICAgICAgICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgICAgICAgIHdpZHRoPSIxNiIKICAgICAgICAgICAgaGVpZ2h0PSIxNiIKICAgICAgICAgICAgdmlld0JveD0iMCAwIDI0IDI0IgogICAgICAgICAgICBmaWxsPSJub25lIgogICAgICAgICAgICBzdHJva2U9ImN1cnJlbnRDb2xvciIKICAgICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyIgogICAgICAgICAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiCiAgICAgICAgICAgIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNlbmQtaG9yaXpvbnRhbC1pY29uIGx1Y2lkZS1zZW5kLWhvcml6b250YWwiCiAgICAgICAgICAgID4KICAgICAgICAgICAgPHBhdGggZD0iTTMuNzE0IDMuMDQ4YS40OTguNDk4IDAgMCAwLS42ODMuNjI3bDIuODQzIDcuNjI3YTIgMiAwIDAgMSAwIDEuMzk2bC0yLjg0MiA3LjYyN2EuNDk4LjQ5OCAwIDAgMCAuNjgyLjYyN2wxOC04LjVhLjUuNSAwIDAgMCAwLS45MDR6Ii8+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik02IDEyaDE2Ii8+CiAgICAgICAgICAgIDwvc3ZnPg==";
-          img.alt = "Send";
+          const icon = sendBtn.createDiv({ cls: "api-designer-send-icon" });
+          setIcon(icon, "send-horizontal");
 
           const body = card.createDiv({ cls: "api-designer-body" });
 
@@ -347,7 +346,9 @@ function renderPropRow(
   };
 
   const wrapper = row.createDiv({ cls: "api-designer-select-wrapper" });
-  wrapper.createDiv({ cls: "api-designer-select-icon" });
+
+  const icon = wrapper.createDiv({ cls: "api-designer-select-icon" });
+  setIcon(icon, "chevron-down");
 
   const typeSelect = wrapper.createEl("select", { cls: "api-designer-type-select" });
   ["string", "number", "boolean", "object", "array"].forEach((t) => {

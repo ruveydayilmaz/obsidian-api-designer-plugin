@@ -1,6 +1,6 @@
 {
   "name": "obsidian-api-designer-plugin",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Obsidian plugin to design API endpoints visually.",
   "main": "main.js",
   "scripts": {
