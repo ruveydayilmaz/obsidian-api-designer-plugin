@@ -76,7 +76,7 @@ class APIDesignerSettingTab extends PluginSettingTab {
               const parsed = JSON.parse(value) as Record<string, string>;
               this.plugin.settings.customTheme = parsed;
             } catch {
-              this.errorEl = containerEl.createEl("div", {
+              this.errorEl = containerEl.createDiv({
                 text: "Invalid format",
                 cls: "api-designer-api-theme-error",
               });
@@ -143,7 +143,7 @@ export default class APIDesignerPlugin extends Plugin {
         try {
           endpoints = deepClone(JSON.parse(source));
         } catch {
-          el.createEl("div", { text: "Invalid JSON" });
+          el.createDiv({ text: "Invalid JSON" });
           return;
         }
 
@@ -160,7 +160,7 @@ export default class APIDesignerPlugin extends Plugin {
         const editor: Editor = view.editor;
 
         const updateNote = () => {
-          setTimeout(() => {
+          activeWindow.setTimeout(() => {
             const doc = editor.getValue();
             const lines = doc.split("\n");
 
@@ -232,7 +232,7 @@ export default class APIDesignerPlugin extends Plugin {
 
           const img = sendBtn.createEl("img", { cls: "api-designer-send-icon" });
           img.src =
-            "data:image/svg+xml;base64,PHN2ZwogICAgICAgICAgICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgICAgICAgIHdpZHRoPSIxNiIKICAgICAgICAgICAgaGVpZ2h0PSIxNiIKICAgICAgICAgICAgdmlld0JveD0iMCAwIDI0IDI0IgogICAgICAgICAgICBmaWxsPSJub25lIgogICAgICAgICAgICBzdHJva2U9ImN1cnJlbnRDb2xvciIKICAgICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyIgogICAgICAgICAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiCiAgICAgICAgICAgIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNlbmQtaG9yaXpvbnRhbC1pY29uIGx1Y2lkZS1zZW5kLWhvcml6b250YWwiCiAgICAgICAgICAgID4KICAgICAgICAgICAgPHBhdGggZD0iTTMuNzE0IDMuMDQ4YS40OTguNDk4IDAgMCAwLS42ODMuNjI3bDIuODQzIDcuNjI3YTIgMiAwIDAgMSAwIDEuMzk2bC0yLjg0MiA3LjYyN2EuNDk4LjQ5OCAwIDAgMCAuNjgyLjYyN2wxOC04LjVhLjUuNSAwIDAgMCAwLS45MDR6Ii8+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik02IDEyaDE2Ii8+CiAgICAgICAgICA8L3N2Zz4=";
+            "data:image/svg+xml;base64,PHN2ZwogICAgICAgICAgICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgICAgICAgIHdpZHRoPSIxNiIKICAgICAgICAgICAgaGVpZ2h0PSIxNiIKICAgICAgICAgICAgdmlld0JveD0iMCAwIDI0IDI0IgogICAgICAgICAgICBmaWxsPSJub25lIgogICAgICAgICAgICBzdHJva2U9ImN1cnJlbnRDb2xvciIKICAgICAgICAgICAgc3Ryb2tlLXdpZHRoPSIyIgogICAgICAgICAgICBzdHJva2UtbGluZWNhcD0icm91bmQiCiAgICAgICAgICAgIHN0cm9rZS1saW5lam9pbj0icm91bmQiCiAgICAgICAgICAgIGNsYXNzPSJsdWNpZGUgbHVjaWRlLXNlbmQtaG9yaXpvbnRhbC1pY29uIGx1Y2lkZS1zZW5kLWhvcml6b250YWwiCiAgICAgICAgICAgID4KICAgICAgICAgICAgPHBhdGggZD0iTTMuNzE0IDMuMDQ4YS40OTguNDk4IDAgMCAwLS42ODMuNjI3bDIuODQzIDcuNjI3YTIgMiAwIDAgMSAwIDEuMzk2bC0yLjg0MiA3LjYyN2EuNDk4LjQ5OCAwIDAgMCAuNjgyLjYyN2wxOC04LjVhLjUuNSAwIDAgMCAwLS45MDR6Ii8+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik02IDEyaDE2Ii8+CiAgICAgICAgICAgIDwvc3ZnPg==";
           img.alt = "Send";
 
           const body = card.createDiv({ cls: "api-designer-body" });
@@ -272,7 +272,7 @@ export default class APIDesignerPlugin extends Plugin {
 
     for (const [rawKey, value] of Object.entries(theme)) {
       const key = rawKey.startsWith("api-") ? rawKey : `api-${rawKey}`;
-      document.body.style.setProperty(`--${key}`, value);
+      activeDocument.body.style.setProperty(`--${key}`, value);
     }
   }
 
@@ -399,7 +399,7 @@ function renderPropRow(
     ) {
       const sc = ensureSubContainer();
       sc.empty();
-      const label = sc.createEl("div", { text: "Array items" });
+      const label = sc.createDiv({ text: "Array items" });
       label.addClass("sub-label");
       renderPropRow(sc, prop.items, onUpdate, () => {
         prop.items = { name: "item", type: "string" };
