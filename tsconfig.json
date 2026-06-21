@@ -1,15 +1,9 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "inlineSourceMap": true,
-    "module": "CommonJS",
-    "target": "ES6",
-    "allowJs": true,
-    "noImplicitAny": true,
-    "moduleResolution": "node",
     "outDir": ".",
-    "lib": ["DOM", "ES5", "ES6", "ES7"],
+    "rootDir": "src",
+    "module": "commonjs"
   },
-  "include": ["src"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
