@@ -5,6 +5,7 @@ import {
   MarkdownPostProcessorContext,
   PluginSettingTab,
   Setting,
+  SettingDefinitionItem,
   Editor,
   PluginManifest,
   debounce,
@@ -14,6 +15,13 @@ interface APIDesignerSettings {
   customThemeJson: string;
   customTheme?: Record<string, string> | null;
 }
+
+const METHODS = ["GET", "POST", "PUT", "DELETE"];
+const PROP_TYPES = ["string", "number", "boolean", "object", "array"];
+const MAX_DEPTH = 8;
+const MAX_SOURCE_LENGTH = 1000000;
+const THEME_KEY = /^[A-Za-z][A-Za-z0-9-]{0,63}$/;
+const THEME_VALUE = /^[#A-Za-z0-9(),.%\s-]{1,64}$/;
 
 const DEFAULT_SETTINGS: APIDesignerSettings = {
   customThemeJson: "",
@@ -29,6 +37,15 @@ class APIDesignerSettingTab extends PluginSettingTab {
     this.plugin = plugin;
   }
 
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    return [
+      {
+        name: "Customize theme",
+        render: (setting) => this.renderThemeSetting(setting),
+      },
+    ];
+  }
+
   display(): void {
     const { containerEl } = this;
     containerEl.empty();
@@ -39,14 +56,15 @@ class APIDesignerSettingTab extends PluginSettingTab {
         text: "Ruveyda",
         href: "https://github.com/ruveydayilmaz",
       });
-    new Setting(containerEl)
+    this.renderThemeSetting(new Setting(containerEl));
+  }
+
+  private renderThemeSetting(setting: Setting) {
+    setting
       .setName("Customize theme")
-      .setDesc("Customize how your API endpoint cards look.")
       .setDesc(
         createFragment((frag) => {
-          frag.appendText(
-            "Paste a JSON object defining custom CSS variables. "
-          );
+          frag.appendText("Paste a JSON object defining custom CSS variables. ");
           frag.createEl("br");
           frag.appendText("You can find a JSON example on ");
           frag.createEl("a", {
@@ -74,10 +92,10 @@ class APIDesignerSettingTab extends PluginSettingTab {
 
             this.plugin.settings.customThemeJson = value;
             try {
-              const parsed = JSON.parse(value) as Record<string, string>;
-              this.plugin.settings.customTheme = parsed;
+              const parsed: unknown = JSON.parse(value);
+              this.plugin.settings.customTheme = sanitizeTheme(parsed);
             } catch {
-              this.errorEl = containerEl.createDiv({
+              this.errorEl = setting.controlEl.createDiv({
                 text: "Invalid format",
                 cls: "api-designer-api-theme-error",
               });
@@ -142,7 +160,8 @@ export default class APIDesignerPlugin extends Plugin {
       (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
         let endpoints: APIEndpoint[];
         try {
-          endpoints = deepClone(JSON.parse(source));
+          if (source.length > MAX_SOURCE_LENGTH) throw new Error("too large");
+          endpoints = sanitizeEndpoints(JSON.parse(source));
         } catch {
           el.createDiv({ text: "Invalid JSON" });
           return;
@@ -153,37 +172,40 @@ export default class APIDesignerPlugin extends Plugin {
         );
         if (!codeBlock) return;
 
-        const info = ctx.getSectionInfo(codeBlock);
-        if (!info) return;
+        if (!ctx.getSectionInfo(codeBlock)) return;
 
-        const view = this.app.workspace.getActiveViewOfType(MarkdownView);
-        if (!view) return;
-        const editor: Editor = view.editor;
+        let lastSource = source.trim();
 
         const updateNote = () => {
           window.setTimeout(() => {
-            const doc = editor.getValue();
-            const lines = doc.split("\n");
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (!view || !view.file || view.file.path !== ctx.sourcePath) return;
 
-            let start = info.lineStart;
-            while (start >= 0 && !/^```api-endpoints\b/.test(lines[start]))
-              start--;
-            if (start < 0) return;
+            const info = ctx.getSectionInfo(codeBlock);
+            if (!info) return;
+
+            const editor: Editor = view.editor;
+            const lines = editor.getValue().split("\n");
+
+            const start = info.lineStart;
+            if (!/^```api-endpoints\b/.test(lines[start] ?? "")) return;
 
             let end = start + 1;
             while (end < lines.length && !/^```/.test(lines[end])) end++;
             if (end >= lines.length) end = lines.length - 1;
 
-            const newBlock =
-              "```api-endpoints\n" +
-              JSON.stringify(endpoints, null, 2) +
-              "\n```";
+            const currentBody = lines.slice(start + 1, end).join("\n").trim();
+            if (currentBody !== lastSource) return;
+
+            const json = JSON.stringify(endpoints, null, 2);
+            const newBlock = "```api-endpoints\n" + json + "\n```";
 
             editor.replaceRange(
               newBlock,
               { line: start, ch: 0 },
               { line: end, ch: lines[end].length }
             );
+            lastSource = json.trim();
           }, 0);
         };
 
@@ -258,7 +280,8 @@ export default class APIDesignerPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const data = (await this.loadData()) as Partial<APIDesignerSettings> | null;
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, data ?? {});
   }
 
   async saveSettings() {
@@ -269,7 +292,7 @@ export default class APIDesignerPlugin extends Plugin {
     const theme = this.settings.customTheme;
     if (!theme) return;
 
-    for (const [rawKey, value] of Object.entries(theme)) {
+    for (const [rawKey, value] of Object.entries(sanitizeTheme(theme) ?? {})) {
       const key = rawKey.startsWith("api-") ? rawKey : `api-${rawKey}`;
       activeDocument.body.style.setProperty(`--${key}`, value);
     }
@@ -415,6 +438,54 @@ function renderPropRow(
   renderSub();
 }
 
-function deepClone<T>(obj: T): T {
-  return JSON.parse(JSON.stringify(obj));
+function sanitizeTheme(value: unknown): Record<string, string> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const result: Record<string, string> = {};
+  for (const [key, val] of Object.entries(value)) {
+    if (
+      THEME_KEY.test(key) &&
+      typeof val === "string" &&
+      THEME_VALUE.test(val) &&
+      !/url\s*\(/i.test(val)
+    ) {
+      result[key] = val;
+    }
+  }
+  return result;
+}
+
+function sanitizeProp(value: unknown, depth: number, fallbackName: string): APIProp {
+  const o = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
+  const type = typeof o.type === "string" && PROP_TYPES.includes(o.type) ? o.type : "string";
+  const prop: APIProp = {
+    name: typeof o.name === "string" ? o.name : fallbackName,
+    type,
+  };
+  if (type === "object") {
+    prop.items = sanitizeProps(o.items, depth + 1);
+  } else if (type === "array") {
+    prop.items =
+      depth + 1 > MAX_DEPTH
+        ? { name: "item", type: "string" }
+        : sanitizeProp(Array.isArray(o.items) ? undefined : o.items, depth + 1, "item");
+  }
+  return prop;
+}
+
+function sanitizeProps(value: unknown, depth: number): APIProp[] {
+  if (!Array.isArray(value) || depth > MAX_DEPTH) return [];
+  return value.map((p) => sanitizeProp(p, depth, ""));
+}
+
+function sanitizeEndpoints(value: unknown): APIEndpoint[] {
+  if (!Array.isArray(value)) throw new Error("not an array");
+  return value.map((v) => {
+    const o = (v && typeof v === "object" ? v : {}) as Record<string, unknown>;
+    return {
+      method: typeof o.method === "string" && METHODS.includes(o.method) ? o.method : "GET",
+      endpoint: typeof o.endpoint === "string" ? o.endpoint : "",
+      requestBody: sanitizeProps(o.requestBody, 0),
+      responseBody: sanitizeProps(o.responseBody, 0),
+    };
+  });
 }
