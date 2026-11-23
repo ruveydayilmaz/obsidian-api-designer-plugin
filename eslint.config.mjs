@@ -1,14 +1,16 @@
-import js from "@eslint/js";
-import tsParser from "@typescript-eslint/parser";
-import tsPlugin from "@typescript-eslint/eslint-plugin";
+import tseslint from "typescript-eslint";
+import { defineConfig } from "eslint/config";
+import obsidianmd from "eslint-plugin-obsidianmd";
 
-/** @type {import("eslint").Linter.FlatConfig[]} */
-export default [
+export default defineConfig([
+  ...obsidianmd.configs.recommended,
+
   {
-    ignores: ["dist", "build", "node_modules"]
+    files: ["esbuild.config.mjs"],
+    rules: {
+      "obsidianmd/no-nodejs-modules": "off",
+    },
   },
-
-  js.configs.recommended,
 
   {
     files: ["src/**/*.ts"],
