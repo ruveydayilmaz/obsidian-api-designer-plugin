@@ -1,9 +1,26 @@
 {
-  "compilerOptions": {
-    "outDir": ".",
-    "rootDir": "src",
-    "module": "commonjs"
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+    "compilerOptions": {
+        "inlineSourceMap": true,
+        "inlineSources": true,
+        "module": "ESNext",
+        "target": "ES6",
+        "allowJs": true,
+        "noImplicitAny": true,
+        "moduleResolution": "bundler",
+        "importHelpers": true,
+        "isolatedModules": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "lib": [
+            "DOM",
+            "ES5",
+            "ES6",
+            "ES7",
+            "ES2020"
+        ],
+        "paths": {
+            "*": ["./src/*"]
+        }
+    },
+    "include": ["src/**/*.ts"]
 }
