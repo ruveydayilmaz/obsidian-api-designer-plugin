@@ -6,6 +6,13 @@ export default defineConfig([
   ...obsidianmd.configs.recommended,
 
   {
+    files: ["esbuild.config.mjs"],
+    rules: {
+      "obsidianmd/no-nodejs-modules": "off",
+    },
+  },
+
+  {
     files: ["**/*.ts"],
     languageOptions: {
       parser: tseslint.parser,
